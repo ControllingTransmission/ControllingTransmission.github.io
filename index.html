@@ -54,7 +54,11 @@
                 targetColor: new THREE.Color(),
                 lastChange: 0,
                 progress: 1,
-                nextChangeInterval: Math.random() * 100 + 200 // Random interval between 200-300ms
+                nextChangeInterval: Math.random() * 100 + 200,
+                danceOffset: Math.random() * Math.PI * 2,
+                danceSpeed: 2 + Math.random() * 0.8,
+                rotationOffset: Math.random() * Math.PI * 2,
+                rotationSpeed: 1.5 + Math.random() * 0.5
             };
             return transition;
         }
@@ -89,6 +93,7 @@
             })()
         );
         h.userData.colorTransition = hTransition;
+        letters.add(h);
 
         // Create E
         const eTransition = createLetterMaterial();
@@ -113,6 +118,7 @@
             })()
         );
         e.userData.colorTransition = eTransition;
+        letters.add(e);
 
         // Create L
         const lTransition = createLetterMaterial();
@@ -127,6 +133,7 @@
             })()
         );
         l.userData.colorTransition = lTransition;
+        letters.add(l);
 
         // Create L2
         const l2Transition = createLetterMaterial();
@@ -141,6 +148,7 @@
             })()
         );
         l2.userData.colorTransition = l2Transition;
+        letters.add(l2);
 
         // Create O
         const oTransition = createLetterMaterial();
@@ -165,48 +173,68 @@
             })()
         );
         o.userData.colorTransition = oTransition;
+        letters.add(o);
 
         // Create !
         const exclamationTransition = createLetterMaterial();
         const exclamation = new THREE.Group();
         exclamation.position.x = 20;
         
-        // Vertical bar of !
         const exclamBar = createBar(1, 3.5, 1, exclamationTransition.material);
         exclamBar.position.y = 0.5;
         
-        // Dot of !
         const exclamDot = createBar(1, 1, 1, exclamationTransition.material);
         exclamDot.position.y = -2;
         
         exclamation.add(exclamBar, exclamDot);
         exclamation.userData.colorTransition = exclamationTransition;
+        letters.add(exclamation);
 
-        letters.add(h, e, l, l2, o, exclamation);
+        // Center the whole word
         letters.position.x = -11;
 
         camera.position.z = 20;
 
-        const baseInterval = 250; // Transition time of 250ms (4 times per second)
+        // Store original positions after all letters are created
+        const originalPositions = letters.children.map(letter => letter.position.x);
+
+        const baseInterval = 250;
         let lastTime = 0;
 
         function updateLetterTransitions(currentTime, deltaTime) {
-            [h, e, l, l2, o, exclamation].forEach(letter => {
+            letters.children.forEach((letter, index) => {
                 const trans = letter.userData.colorTransition;
                 
+                // Update colors
                 if (currentTime - trans.lastChange >= trans.nextChangeInterval) {
                     trans.currentColor.copy(trans.material.color);
                     trans.targetColor.setHex(getRandomColor(trans.material.color.getHex()));
                     trans.progress = 0;
                     trans.lastChange = currentTime;
-                    // Set next change interval randomly around 250ms (4 times per second)
-                    trans.nextChangeInterval = Math.random() * 100 + 200; // 200-300ms range
+                    trans.nextChangeInterval = Math.random() * 100 + 200;
                 }
 
                 if (trans.progress < 1) {
                     trans.progress = Math.min(trans.progress + (deltaTime / baseInterval), 1);
                     trans.material.color.copy(trans.currentColor).lerp(trans.targetColor, trans.progress);
                 }
+
+                // Dancing movement
+                const time = currentTime * 0.001;
+                
+                // Vertical bounce
+                letter.position.y = Math.sin(time * trans.danceSpeed + trans.danceOffset) * 0.4;
+                
+                // Side-to-side movement
+                letter.position.z = Math.sin(time * trans.danceSpeed * 0.7 + trans.danceOffset) * 0.3;
+                
+                // Horizontal wobble
+                letter.position.x = originalPositions[index] + 
+                                  Math.sin(time * trans.danceSpeed * 0.5 + trans.danceOffset) * 0.15;
+                
+                // Rotation dance
+                letter.rotation.z = Math.sin(time * trans.rotationSpeed + trans.rotationOffset) * 0.15;
+                letter.rotation.x = Math.cos(time * trans.rotationSpeed * 0.8 + trans.rotationOffset) * 0.15;
             });
         }
 
