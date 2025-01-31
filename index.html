@@ -1,1 +1,233 @@
-Hello
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { 
+            margin: 0;
+            overflow: hidden;
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x1e293b);
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        const pivot = new THREE.Group();
+        scene.add(pivot);
+
+        const letters = new THREE.Group();
+        pivot.add(letters);
+
+        const colors = [
+            0xff0000, // Red
+            0x00ff00, // Green
+            0x0000ff, // Blue
+            0xffff00, // Yellow
+            0xff00ff, // Magenta
+            0x00ffff  // Cyan
+        ];
+
+        function createLetterMaterial() {
+            const transition = {
+                material: new THREE.MeshPhongMaterial({
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    specular: 0x494949,
+                    shininess: 100
+                }),
+                currentColor: new THREE.Color(),
+                targetColor: new THREE.Color(),
+                lastChange: 0,
+                progress: 1,
+                nextChangeInterval: Math.random() * 100 + 200 // Random interval between 200-300ms
+            };
+            return transition;
+        }
+
+        function getRandomColor(currentHex) {
+            let newColor;
+            do {
+                newColor = colors[Math.floor(Math.random() * colors.length)];
+            } while (newColor === currentHex);
+            return newColor;
+        }
+
+        function createBar(width, height, depth, material) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            return new THREE.Mesh(geometry, material);
+        }
+
+        // Create H
+        const hTransition = createLetterMaterial();
+        const h = new THREE.Group();
+        h.add(
+            createBar(1, 5, 1, hTransition.material),
+            (() => {
+                const right = createBar(1, 5, 1, hTransition.material);
+                right.position.x = 2;
+                return right;
+            })(),
+            (() => {
+                const mid = createBar(3, 1, 1, hTransition.material);
+                mid.position.x = 1;
+                return mid;
+            })()
+        );
+        h.userData.colorTransition = hTransition;
+
+        // Create E
+        const eTransition = createLetterMaterial();
+        const e = new THREE.Group();
+        e.position.x = 4;
+        e.add(
+            createBar(1, 5, 1, eTransition.material),
+            (() => {
+                const top = createBar(2, 1, 1, eTransition.material);
+                top.position.set(1, 2, 0);
+                return top;
+            })(),
+            (() => {
+                const mid = createBar(2, 1, 1, eTransition.material);
+                mid.position.x = 1;
+                return mid;
+            })(),
+            (() => {
+                const bottom = createBar(2, 1, 1, eTransition.material);
+                bottom.position.set(1, -2, 0);
+                return bottom;
+            })()
+        );
+        e.userData.colorTransition = eTransition;
+
+        // Create L
+        const lTransition = createLetterMaterial();
+        const l = new THREE.Group();
+        l.position.x = 8;
+        l.add(
+            createBar(1, 5, 1, lTransition.material),
+            (() => {
+                const bottom = createBar(2, 1, 1, lTransition.material);
+                bottom.position.set(1, -2, 0);
+                return bottom;
+            })()
+        );
+        l.userData.colorTransition = lTransition;
+
+        // Create L2
+        const l2Transition = createLetterMaterial();
+        const l2 = new THREE.Group();
+        l2.position.x = 12;
+        l2.add(
+            createBar(1, 5, 1, l2Transition.material),
+            (() => {
+                const bottom = createBar(2, 1, 1, l2Transition.material);
+                bottom.position.set(1, -2, 0);
+                return bottom;
+            })()
+        );
+        l2.userData.colorTransition = l2Transition;
+
+        // Create O
+        const oTransition = createLetterMaterial();
+        const o = new THREE.Group();
+        o.position.x = 16;
+        o.add(
+            createBar(1, 5, 1, oTransition.material),
+            (() => {
+                const right = createBar(1, 5, 1, oTransition.material);
+                right.position.x = 2;
+                return right;
+            })(),
+            (() => {
+                const top = createBar(3, 1, 1, oTransition.material);
+                top.position.set(1, 2, 0);
+                return top;
+            })(),
+            (() => {
+                const bottom = createBar(3, 1, 1, oTransition.material);
+                bottom.position.set(1, -2, 0);
+                return bottom;
+            })()
+        );
+        o.userData.colorTransition = oTransition;
+
+        // Create !
+        const exclamationTransition = createLetterMaterial();
+        const exclamation = new THREE.Group();
+        exclamation.position.x = 20;
+        
+        // Vertical bar of !
+        const exclamBar = createBar(1, 3.5, 1, exclamationTransition.material);
+        exclamBar.position.y = 0.5;
+        
+        // Dot of !
+        const exclamDot = createBar(1, 1, 1, exclamationTransition.material);
+        exclamDot.position.y = -2;
+        
+        exclamation.add(exclamBar, exclamDot);
+        exclamation.userData.colorTransition = exclamationTransition;
+
+        letters.add(h, e, l, l2, o, exclamation);
+        letters.position.x = -11;
+
+        camera.position.z = 20;
+
+        const baseInterval = 250; // Transition time of 250ms (4 times per second)
+        let lastTime = 0;
+
+        function updateLetterTransitions(currentTime, deltaTime) {
+            [h, e, l, l2, o, exclamation].forEach(letter => {
+                const trans = letter.userData.colorTransition;
+                
+                if (currentTime - trans.lastChange >= trans.nextChangeInterval) {
+                    trans.currentColor.copy(trans.material.color);
+                    trans.targetColor.setHex(getRandomColor(trans.material.color.getHex()));
+                    trans.progress = 0;
+                    trans.lastChange = currentTime;
+                    // Set next change interval randomly around 250ms (4 times per second)
+                    trans.nextChangeInterval = Math.random() * 100 + 200; // 200-300ms range
+                }
+
+                if (trans.progress < 1) {
+                    trans.progress = Math.min(trans.progress + (deltaTime / baseInterval), 1);
+                    trans.material.color.copy(trans.currentColor).lerp(trans.targetColor, trans.progress);
+                }
+            });
+        }
+
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            
+            updateLetterTransitions(currentTime, deltaTime);
+            pivot.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        
+        animate(0);
+
+        window.addEventListener('resize', function() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
