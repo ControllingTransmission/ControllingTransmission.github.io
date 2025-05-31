@@ -4,4 +4,6 @@ Controlling Transmission website
 Visit the live site: [https://controllingtransmission.github.io](https://controllingtransmission.github.io)
 
 ## About
-This repository hosts a 3D animated website featuring interactive letters that spell "HELLO!" using Three.js. The letters change colors dynamically and rotate continuously, creating an engaging visual experience.
+Controlling Transmission is an artist collective making computer graphics for fun. Primarily, these are Javascript applications to be run in the browser at chiptune concerts.
+
+This repository hosts our website and links to demos of our work over the years.
